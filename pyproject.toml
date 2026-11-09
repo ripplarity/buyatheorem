@@ -1,0 +1,20 @@
+[project]
+name = "buyatheorem"
+version = "0.1.0"
+description = "Mint a new, machine-checked Lean 4 lemma named for a buyer"
+requires-python = ">=3.10"
+dependencies = ["typer>=0.9", "pydantic>=2", "jinja2>=3", "cryptography>=41"]
+license = {text = "Apache-2.0"}
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+buyatheorem = "buyatheorem.cli:app"
+
+[tool.setuptools]
+packages = ["buyatheorem"]
+
+[tool.pytest.ini_options]
+markers = ["slow: runs the real Lean checker"]
+addopts = "-p no:cacheprovider"
