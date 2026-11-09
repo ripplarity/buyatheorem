@@ -95,3 +95,21 @@ def test_page_buy_button_is_test_mode_link():
     assert 'href="https://buy.stripe.com/test_' in page and "TEST MODE: no real charge" in page
     assert "word-break:break-all" in page and "second channel" in page
     assert "new (not in mathlib text)" in page.lower()
+
+
+def test_poll_applies_default_payment_link_filter(tmp_path, monkeypatch):
+    import io
+    monkeypatch.setenv("BAT_KEYDIR", str(tmp_path / "k"))
+    monkeypatch.setenv("STRIPE_TEST_KEY", "rk" + "_test_dummy")
+    d = _two_stock(tmp_path)
+    seen = []
+
+    def fake_urlopen(req, timeout=0):
+        seen.append(req.full_url)
+        return io.BytesIO(open(SESS, "rb").read())
+    monkeypatch.setattr(fulfil.urllib.request, "urlopen", fake_urlopen)
+    assert fulfil.main(["fulfil.py", "--poll", "--dir", d]) == 0
+    assert "payment_link=plink_1UZhjiAEYFnTYpgAkqQ7MbPE" in seen[0]
+    assert fulfil.main(["fulfil.py", "--poll", "--link", "plink_other", "--dir", d]) == 0
+    assert "payment_link=plink_other" in seen[1]
+    assert fulfil.DEFAULT_LINK == "plink_1UZhjiAEYFnTYpgAkqQ7MbPE"

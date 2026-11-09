@@ -2,7 +2,7 @@
 """Fulfil a Stripe TEST-mode checkout.session.completed event: claim a reserved lemma for the buyer.
 
 Usage: python tools/fulfil.py <event.json> [--dir stock]
-       python tools/fulfil.py --poll [--link plink_...] [--dir stock]   (env STRIPE_TEST_KEY, test mode only)
+       python tools/fulfil.py --poll [--link plink_...] [--dir stock]   (default link plink_1UZhjiAEYFnTYpgAkqQ7MbPE; env STRIPE_TEST_KEY, test mode only)
 Reads a webhook JSON file only (no network, no Stripe key needed). A real webhook endpoint must
 verify the Stripe-Signature header before calling fulfil() -- see web/checkout.md.
 Exit: 0 fulfilled, 2 bad/unsupported event, 3 already fulfilled, 4 stock empty.
@@ -15,6 +15,9 @@ import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from buyatheorem import stock  # noqa: E402
+
+
+DEFAULT_LINK = "plink_1UZhjiAEYFnTYpgAkqQ7MbPE"
 
 
 class Skip(Exception):
@@ -55,7 +58,7 @@ def fulfil_session(obj: dict, d: str) -> str:
     return _claim(sid, name, d)
 
 
-def fetch_sessions(key: str, link: str = None) -> list:
+def fetch_sessions(key: str, link: str = DEFAULT_LINK) -> list:
     if "_live_" in key:
         raise Skip(2, "live key refused: test mode only")
     q = {"status": "complete", "limit": "100"}
@@ -102,7 +105,7 @@ def main(argv):
         if not key:
             print("error: set STRIPE_TEST_KEY", file=sys.stderr)
             return 2
-        link = argv[argv.index("--link") + 1] if "--link" in argv else None
+        link = argv[argv.index("--link") + 1] if "--link" in argv else DEFAULT_LINK
         try:
             poll(fetch_sessions(key, link), d)
             return 0
