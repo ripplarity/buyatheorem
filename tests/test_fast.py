@@ -278,3 +278,18 @@ def test_cli_mint_lean_error_exits_3(tmp_path, monkeypatch):
     r = CliRunner().invoke(cli.app, ["mint", "--for", "Ada Example", "--seed", "0abc"])
     assert r.exit_code == 3 and "LEAN-ERROR: lean process killed (rc 137)" in r.output
     assert len(calls) == 1 and os.listdir(tmp_path / "reg") == []
+
+
+def test_page_links_relative_and_examples_present():
+    import re
+    web = os.path.join(os.path.dirname(__file__), "..", "web")
+    page = open(os.path.join(web, "index.html"), encoding="utf-8").read()
+    hrefs = re.findall(r'href="(examples/[^"]+)"', page)
+    assert len(hrefs) >= 10
+    for h in hrefs:
+        assert os.path.exists(os.path.join(web, h)), h
+    for f in os.listdir(os.path.join(web, "examples")):
+        if f.endswith((".lean", ".json")):
+            assert "Ada" not in open(os.path.join(web, "examples", f), encoding="utf-8").read()
+    wf = open(os.path.join(web, "..", ".github", "workflows", "pages.yml"), encoding="utf-8").read()
+    assert "upload-pages-artifact@v3" in wf and "path: web" in wf and "pages: write" in wf

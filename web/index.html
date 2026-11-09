@@ -42,9 +42,9 @@ footer{margin-top:3rem;color:var(--muted);font-size:.9rem}
 </div>
 
 <h2>Three example certificates</h2>
-<div class="card"><b>Ada Example</b> &middot; <code>bat-edb5d009f2b1</code><pre>theorem bat_edb5d009f2b1 : (3531 * 7150) % 860 = 490</pre><p class="note">Family F1. Lean-checked; small by design.</p></div>
-<div class="card"><b>Ada Example</b> &middot; <code>bat-38d3eadd9ccc</code><pre>theorem bat_38d3eadd9ccc : ∑ i ∈ Finset.range 25, (2 * i + 1) = 25 ^ 2</pre><p class="note">Family F2. Lean-checked; small by design.</p></div>
-<div class="card"><b>Ada Example</b> &middot; <code>bat-1e5dfc2e007e</code><pre>theorem bat_1e5dfc2e007e : 291 ^ 2 + 326 ^ 2 ≥ 2 * 291 * 326</pre><p class="note">Family F3. Lean-checked; small by design.</p></div>
+<div class="card"><b>RESERVED</b> (unclaimed example) &middot; <code>bat-edb5d009f2b1</code><pre>theorem bat_edb5d009f2b1 : (3531 * 7150) % 860 = 490</pre><p class="note"><a href="examples/bat-edb5d009f2b1.pdf">PDF</a> &middot; <a href="examples/bat-edb5d009f2b1.lean">Lean</a> &middot; <a href="examples/bat-edb5d009f2b1.dsse.json">attestation</a> &middot; Family F1. Lean-checked; small by design.</p></div>
+<div class="card"><b>RESERVED</b> (unclaimed example) &middot; <code>bat-38d3eadd9ccc</code><pre>theorem bat_38d3eadd9ccc : ∑ i ∈ Finset.range 25, (2 * i + 1) = 25 ^ 2</pre><p class="note"><a href="examples/bat-38d3eadd9ccc.pdf">PDF</a> &middot; <a href="examples/bat-38d3eadd9ccc.lean">Lean</a> &middot; <a href="examples/bat-38d3eadd9ccc.dsse.json">attestation</a> &middot; Family F2. Lean-checked; small by design.</p></div>
+<div class="card"><b>RESERVED</b> (unclaimed example) &middot; <code>bat-1e5dfc2e007e</code><pre>theorem bat_1e5dfc2e007e : 291 ^ 2 + 326 ^ 2 ≥ 2 * 291 * 326</pre><p class="note"><a href="examples/bat-1e5dfc2e007e.pdf">PDF</a> &middot; <a href="examples/bat-1e5dfc2e007e.lean">Lean</a> &middot; <a href="examples/bat-1e5dfc2e007e.dsse.json">attestation</a> &middot; Family F3. Lean-checked; small by design.</p></div>
 
 
 <h2>Price</h2>
@@ -68,7 +68,7 @@ footer{margin-top:3rem;color:var(--muted);font-size:.9rem}
 <div class="card">
 <p>You do not need to trust us. Each registry entry has a Lean file and a signed attestation (DSSE, in-toto). To check one yourself:</p>
 <pre>python tools/attest_verify.py bat-XXXXXXXXXXXX.dsse.json --key &lt;pubkey&gt; --expect-keyid &lt;pinned keyid&gt; --check-subjects .</pre>
-<p>That checks the signature and that the Lean file matches the signed hash. Then re-run Lean on the file yourself:</p>
+<p>The example registry public key and keyid are in <a href="examples/registry-key.txt">examples/registry-key.txt</a>. That checks the signature and that the Lean file matches the signed hash. Then re-run Lean on the file yourself:</p>
 <pre>lake env lean bat-XXXXXXXXXXXX.lean</pre>
 <p>Full verify (needs a local Lean 4 + Mathlib project; see README): <code>python -m buyatheorem verify bat-XXXXXXXXXXXX</code>. The attestation's predicate type is not yet in the verifier's list, so a valid signature currently returns exit code 5 ("signature valid, predicate type unknown"), not 0.</p>
 </div>
