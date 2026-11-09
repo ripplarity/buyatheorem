@@ -70,7 +70,7 @@ def test_attestation_signs_and_verifies(tmp_path, monkeypatch):
     cert = {"serial": "bat-1", "statement": "s", "statement_hash": "h", "lean_version": "v",
             "mathlib_rev": "r", "check_log_sha256": "c"}
     registry.attest(str(lean), cert, str(tmp_path / "bat-1.dsse.json"), registry.utc())
-    assert registry.verify_attestation(str(tmp_path / "bat-1.dsse.json"), str(tmp_path)) == 5
+    assert registry.verify_attestation(str(tmp_path / "bat-1.dsse.json"), str(tmp_path)) == 0
     lean.write_text("y\n", newline="\n")
     assert registry.verify_attestation(str(tmp_path / "bat-1.dsse.json"), str(tmp_path)) == 3
 
@@ -122,7 +122,7 @@ def test_claim_resigns_without_lean(tmp_path, monkeypatch):
     cert = st.claim(s, "Ada Example", d)
     assert cert["buyer"] == "Ada Example" and cert["checked_sha256"] != cert["lean_sha256"]
     assert "Ada Example" in pypdf.PdfReader(str(tmp_path / (s + ".pdf"))).pages[0].extract_text()
-    assert registry.verify_attestation(str(tmp_path / (s + ".dsse.json")), d) == 5
+    assert registry.verify_attestation(str(tmp_path / (s + ".dsse.json")), d) == 0
     assert st.read_index(d)[0]["state"] == "claimed"
     with pytest.raises(ValueError):
         st.claim(s, "Other", d)
@@ -225,7 +225,7 @@ def test_reset_restores_reserved_and_ship_check(tmp_path, monkeypatch):
     assert st.read_index(d)[0]["state"] == "reserved" and st.ship_check(d) == 1
     txt = pypdf.PdfReader(os.path.join(d, s + ".pdf")).pages[0].extract_text()
     assert "Ada Example" not in txt and "RESERVED" in txt
-    assert registry.verify_attestation(os.path.join(d, s + ".dsse.json"), d) == 5
+    assert registry.verify_attestation(os.path.join(d, s + ".dsse.json"), d) == 0
     st.claim(s, "Next Buyer", d)
 
 

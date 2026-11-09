@@ -7,7 +7,7 @@ Public launch in Stripe TEST-payment mode by 2026-11-26. No live key until you d
 - [ ] Price: $29 single, $79 printed proof pack is NOT on sale until print fulfilment exists.
 - [ ] Live Stripe key (founder-held; set only in the server environment, never in the repo).
 - [ ] Signing key custody and the pinned keyid published on the landing page (`.keys/registry.ed25519` is gitignored; back it up offline).
-- [ ] Register the predicateType in attest-spec KNOWN so the verifier returns rc 0 instead of rc 5.
+- [x] predicateType is in attest-spec KNOWN (verifier synced from main 4388c58); a valid attestation exits 0.
 - [ ] Hosting for `web/` and for the public registry/stock files; refund and name-moderation policy.
 - [ ] Launch post text (draft below, founder approves exact text before anything is posted).
 

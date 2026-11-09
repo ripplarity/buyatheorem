@@ -71,7 +71,7 @@ footer{margin-top:3rem;color:var(--muted);font-size:.9rem}
 <pre>python tools/attest_verify.py bat-XXXXXXXXXXXX.dsse.json --key &lt;pubkey&gt; --expect-keyid &lt;pinned keyid&gt; --check-subjects .</pre>
 <p>The example registry public key and keyid are in <a href="examples/registry-key.txt">examples/registry-key.txt</a>. Compare this key against a second channel (the repository README or release notes) before trusting it. That checks the signature and that the Lean file matches the signed hash. Then re-run Lean on the file yourself:</p>
 <pre>lake env lean bat-XXXXXXXXXXXX.lean</pre>
-<p>Full verify (needs a local Lean 4 + Mathlib project; see README): <code>python -m buyatheorem verify bat-XXXXXXXXXXXX</code>. The attestation's predicate type is not yet in the verifier's list, so a valid signature currently returns exit code 5 ("signature valid, predicate type unknown"), not 0.</p>
+<p>Full verify (needs a local Lean 4 + Mathlib project; see README): <code>python -m buyatheorem verify bat-XXXXXXXXXXXX</code>. A valid signature with a matching Lean file exits 0.</p>
 </div>
 <footer>Code Apache-2.0, lemma texts CC0. No tracking scripts. Web fonts come from Google Fonts.</footer>
 </main>
