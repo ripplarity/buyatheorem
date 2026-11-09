@@ -77,7 +77,7 @@ def render_pdf(cert: dict, out_path: str) -> None:
     y -= 14
     rows = [("Lean", cert["lean_version"]), ("Mathlib commit", cert["mathlib_rev"]),
             ("Proof (Lean file) sha256", cert["lean_sha256"]),
-            ("Check log sha256", cert["check_log_sha256"]),
+            ("Check log sha256", cert["check_log_sha256"] + (" (empty log: Lean printed no messages)" if cert["check_log_sha256"] == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" else "")),
             ("Verify", f"python -m buyatheorem verify {cert['serial']}")]
     for k, v in rows:
         c.setFont("Vera-B", 9)
@@ -91,5 +91,6 @@ def render_pdf(cert: dict, out_path: str) -> None:
     c.setFont("Vera-I", 8)
     c.drawString(60, 70, "New means: statement text not found verbatim in Mathlib and not previously minted. No mathematical importance is claimed.")
     c.drawString(60, 56, PRECEDENT)
+    c.drawString(60, 44, "The buyer or recipient name is PUBLIC in the registry, the Lean file and this PDF.")
     c.showPage()
     c.save()

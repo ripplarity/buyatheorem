@@ -4,7 +4,7 @@ Public launch in Stripe TEST-payment mode by 2026-11-26. No live key until you d
 
 ## Decisions needed
 - [ ] Product name and domain (working name: Buy a Theorem).
-- [ ] Price: $29 single, $79 printed proof pack (text only for now; no printing partner yet).
+- [ ] Price: $29 single, $79 printed proof pack is NOT on sale until print fulfilment exists.
 - [ ] Live Stripe key (founder-held; set only in the server environment, never in the repo).
 - [ ] Signing key custody and the pinned keyid published on the landing page (`.keys/registry.ed25519` is gitignored; back it up offline).
 - [ ] Register the predicateType in attest-spec KNOWN so the verifier returns rc 0 instead of rc 5.
@@ -21,3 +21,7 @@ Buy a Theorem: a small, new, Lean-checked lemma with your name on it, plus a sig
 - Name abuse: names appear in a public registry; add a moderation check before claim.
 - Prior-art optics: TheoryMine did this first; state it plainly (done on page and README).
 - Key loss or leak: attestations cannot be re-signed under a new key without a public note.
+
+## Terms shown on the page before checkout
+- Refund any time before you claim your serial. After claim, the serial is retired with a registry note and the fee is not refundable.
+- The buyer's or recipient's name becomes PUBLIC in the registry, the Lean file and the PDF. Gifting requires the recipient's consent.

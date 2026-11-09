@@ -6,6 +6,17 @@ import typer
 from buyatheorem import mint as m
 from buyatheorem import stock as st
 
+
+
+def setup_streams():
+    for st_ in (sys.stdout, sys.stderr):
+        try:
+            st_.reconfigure(encoding="utf-8", errors="backslashreplace")
+        except (AttributeError, ValueError):
+            pass
+
+
+setup_streams()
 app = typer.Typer(add_completion=False)
 
 

@@ -1,3 +1,4 @@
+import os
 import json
 
 import pytest
@@ -141,3 +142,65 @@ def test_leanproj_required(monkeypatch):
     monkeypatch.delenv("BAT_LEANPROJ", raising=False)
     with pytest.raises(RuntimeError, match="set BAT_LEANPROJ"):
         lean_check.leanproj()
+
+
+def test_cli_survives_cp1252_stdout():
+    import subprocess
+    import sys
+    env = dict(os.environ, PYTHONIOENCODING="cp1252")
+    r = subprocess.run([sys.executable, "-c", "import buyatheorem.cli; print('\u2124 \u2211')"],
+                       capture_output=True, env=env)
+    assert r.returncode == 0 and "ℤ".encode("utf-8") in r.stdout
+
+
+def _env(tmp_path, monkeypatch, lean_ok):
+    monkeypatch.setenv("BAT_REGISTRY", str(tmp_path / "reg"))
+    monkeypatch.setenv("BAT_KEYDIR", str(tmp_path / "k"))
+    monkeypatch.setattr(lean_check, "check", lambda *a, **k: (lean_ok, "ok"))
+    monkeypatch.setattr(lean_check, "lean_version", lambda: "Lean (version 4.35.0)")
+    monkeypatch.setattr(lean_check, "mathlib_rev", lambda: "r")
+
+
+def test_mint_failure_leaves_registry_empty(tmp_path, monkeypatch):
+    from buyatheorem import mint as m
+    _env(tmp_path, monkeypatch, False)
+    with pytest.raises(RuntimeError):
+        m.mint("Ada Example", "0abc", skip_mathlib_grep=True)
+    assert os.listdir(tmp_path / "reg") == []
+
+
+def test_mint_registry_failure_rolls_back(tmp_path, monkeypatch):
+    from buyatheorem import mint as m
+    _env(tmp_path, monkeypatch, True)
+    monkeypatch.setattr(registry, "append", lambda *a, **k: (_ for _ in ()).throw(ValueError("dup")))
+    with pytest.raises(ValueError):
+        m.mint("Ada Example", "0abc", skip_mathlib_grep=True)
+    assert os.listdir(tmp_path / "reg") == []
+
+
+def test_mint_success_lands_all_files(tmp_path, monkeypatch):
+    from buyatheorem import mint as m
+    _env(tmp_path, monkeypatch, True)
+    cert = m.mint("Ada Example", "0abc", skip_mathlib_grep=True)
+    names = set(os.listdir(tmp_path / "reg"))
+    assert {cert["serial"] + e for e in (".lean", ".json", ".html", ".pdf", ".dsse.json")} <= names
+    assert not any(n.startswith(".mint-") for n in names)
+
+
+def test_page_has_refund_public_name_and_no_79_sale():
+    page = open(os.path.join(os.path.dirname(__file__), "..", "web", "index.html"), encoding="utf-8").read()
+    assert "Refund any time before you claim your serial. After claim, the serial is retired with a registry note and the fee is not refundable." in page
+    assert "name becomes PUBLIC in the registry, the Lean file and the PDF" in page
+    assert "Gifting requires the recipient's consent" in page
+    assert "Not on sale yet" in page and "a new, small, checked lemma" in page.lower()
+
+
+def test_empty_log_label_in_html_and_pdf(tmp_path):
+    import pypdf
+    from buyatheorem import pdfcert
+    c = {"serial": "bat-e", "buyer": "Ada Example", "lean_source": "x", "lean_version": "v", "mathlib_rev": "r",
+         "lean_sha256": "a" * 64, "check_log_sha256": certificate.EMPTY}
+    assert "empty log: Lean printed no messages" in certificate.render_html(c)
+    pdfcert.render_pdf(c, str(tmp_path / "e.pdf"))
+    txt = pypdf.PdfReader(str(tmp_path / "e.pdf")).pages[0].extract_text().replace(chr(10), " ")
+    assert "empty log" in txt and "PUBLIC" in txt

@@ -1,6 +1,8 @@
 import json
 import os
 import re
+import shutil
+import tempfile
 
 from buyatheorem import certificate, families, lean_check, novelty, pdfcert, registry
 
@@ -19,7 +21,7 @@ def lean_source(serial_id: str, buyer: str, stmt: str, tactic: str) -> str:
     )
 
 
-def mint(
+def _mint(tmp: str, 
     buyer: str,
     seed: str,
     log=print,
@@ -46,7 +48,7 @@ def mint(
                 log(f"{fam}/{salt}: statement text found in Mathlib, next")
                 continue
             serial = "bat-" + h[:12]
-            lean_path = os.path.join(reg, serial + ".lean")
+            lean_path = os.path.join(tmp, serial + ".lean")
             for tac in c.proofs:
                 with open(lean_path, "w", encoding="utf-8", newline="\n") as f:
                     f.write(lean_source(serial, buyer, c.statement, tac))
@@ -70,40 +72,56 @@ def mint(
                         "minted_at": registry.utc(),
                     }
                     with open(
-                        os.path.join(reg, serial + ".json"),
+                        os.path.join(tmp, serial + ".json"),
                         "w",
                         encoding="utf-8",
                         newline="\n",
                     ) as f:
                         f.write(certificate.dumps(cert))
                     with open(
-                        os.path.join(reg, serial + ".html"),
+                        os.path.join(tmp, serial + ".html"),
                         "w",
                         encoding="utf-8",
                         newline="\n",
                     ) as f:
                         f.write(certificate.render_html(cert))
-                    pdfcert.render_pdf(cert, os.path.join(reg, serial + ".pdf"))
+                    pdfcert.render_pdf(cert, os.path.join(tmp, serial + ".pdf"))
                     registry.attest(
                         lean_path,
                         cert,
-                        os.path.join(reg, serial + ".dsse.json"),
+                        os.path.join(tmp, serial + ".dsse.json"),
                         started,
                     )
-                    registry.append(
-                        {
-                            "serial": serial,
-                            "stmt_hash": h,
-                            "lean_sha256": cert["lean_sha256"],
-                            "buyer": buyer,
-                            "minted_at": cert["minted_at"],
-                        },
-                        reg,
-                    )
                     return cert
-            if os.path.exists(lean_path):
-                os.remove(lean_path)
     raise RuntimeError("no family produced a checkable lemma")
+
+
+def mint(buyer: str, seed: str, **kw) -> dict:
+    """Atomic: everything is built in a temp dir inside the registry; files land only after Lean passes."""
+    reg = registry.registry_dir()
+    tmp = tempfile.mkdtemp(prefix=".mint-", dir=reg)
+    moved = []
+    try:
+        cert = _mint(tmp, buyer, seed, **kw)
+        try:
+            for name in sorted(os.listdir(tmp)):
+                os.replace(os.path.join(tmp, name), os.path.join(reg, name))
+                moved.append(name)
+            registry.append(
+                {"serial": cert["serial"], "stmt_hash": cert["statement_hash"],
+                 "lean_sha256": cert["lean_sha256"], "buyer": cert["buyer"], "minted_at": cert["minted_at"]},
+                reg,
+            )
+        except Exception:
+            for name in moved:
+                try:
+                    os.remove(os.path.join(reg, name))
+                except OSError:
+                    pass
+            raise
+        return cert
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 def verify(serial: str, log=print) -> int:

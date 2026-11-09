@@ -1,3 +1,7 @@
+import os
+import subprocess
+import sys
+
 import pytest
 from buyatheorem import families, lean_check, mint
 from buyatheorem.mint import lean_source
@@ -52,3 +56,13 @@ def test_mint_verify_tamper(tmp_path, monkeypatch):
         newline="\n",
     )
     assert mint.verify(s) != 0
+
+
+def test_cli_mint_cp1252_pipe(tmp_path):
+    env = dict(os.environ, PYTHONIOENCODING="cp1252", BAT_REGISTRY=str(tmp_path / "reg"), BAT_KEYDIR=str(tmp_path / "k"))
+    r = subprocess.run([sys.executable, "-m", "buyatheorem", "mint", "--for", "Ada Example", "--seed", "0abc"],
+                       capture_output=True, env=env)
+    assert r.returncode == 0, r.stderr[-300:]
+    serial = r.stdout.decode("utf-8").split()[-1]
+    for ext in (".lean", ".json", ".html", ".dsse.json"):
+        assert (tmp_path / "reg" / (serial + ext)).exists()
