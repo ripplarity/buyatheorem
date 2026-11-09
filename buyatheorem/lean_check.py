@@ -35,6 +35,10 @@ def mathlib_src() -> str:
     return os.path.join(leanproj(), ".lake", "packages", "mathlib", "Mathlib")
 
 
+class LeanError(RuntimeError):
+    """Infrastructure failure (killed, OOM, timeout, silent non-zero exit): not a tactic failure."""
+
+
 def check(path: str, timeout: int = 600):
     """Return (ok, log_text). ok only if rc 0, no 'sorry' warning, no error."""
     try:
@@ -48,8 +52,12 @@ def check(path: str, timeout: int = 600):
             timeout=timeout,
         )
     except subprocess.TimeoutExpired:
-        return False, "TIMEOUT"
+        raise LeanError(f"timeout after {timeout}s")
     log = (p.stdout or "") + (p.stderr or "")
+    if p.returncode < 0 or p.returncode >= 128:
+        raise LeanError(f"lean process killed (rc {p.returncode})")
+    if p.returncode != 0 and not log.strip():
+        raise LeanError(f"lean exited rc {p.returncode} with no messages")
     ok = p.returncode == 0 and "sorry" not in log and "error" not in log
     return ok, log
 

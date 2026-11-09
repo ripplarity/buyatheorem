@@ -32,6 +32,7 @@ def test_novelty_normalise():
     assert novelty.stmt_hash("a  +\n b = c") == novelty.stmt_hash("a+b=c")
 
 
+@pytest.mark.skipif(not os.environ.get("BAT_LEANPROJ"), reason="needs BAT_LEANPROJ")
 def test_novelty_rejects_mathlib_text():
     import os
     d = os.path.join(lean_check.mathlib_src(), "Algebra", "Group")
@@ -226,3 +227,54 @@ def test_reset_restores_reserved_and_ship_check(tmp_path, monkeypatch):
     assert "Ada Example" not in txt and "RESERVED" in txt
     assert registry.verify_attestation(os.path.join(d, s + ".dsse.json"), d) == 5
     st.claim(s, "Next Buyer", d)
+
+
+def _fake_run(rc, out=""):
+    import subprocess
+
+    def run(*a, **k):
+        return subprocess.CompletedProcess(a, rc, stdout=out, stderr="")
+    return run
+
+
+@pytest.mark.parametrize("rc,out", [(137, ""), (-9, ""), (1, ""), (1, None)])
+def test_lean_error_classification(tmp_path, monkeypatch, rc, out):
+    monkeypatch.setenv("BAT_LEANPROJ", str(tmp_path))
+    monkeypatch.setattr(lean_check.subprocess, "run", _fake_run(rc, out))
+    with pytest.raises(lean_check.LeanError):
+        lean_check.check(str(tmp_path / "x.lean"))
+
+
+def test_tactic_failure_is_not_lean_error(tmp_path, monkeypatch):
+    monkeypatch.setenv("BAT_LEANPROJ", str(tmp_path))
+    monkeypatch.setattr(lean_check.subprocess, "run", _fake_run(1, "x.lean:3:2: error: linarith failed"))
+    assert lean_check.check(str(tmp_path / "x.lean"))[0] is False
+
+
+def test_timeout_is_lean_error(tmp_path, monkeypatch):
+    import subprocess
+    monkeypatch.setenv("BAT_LEANPROJ", str(tmp_path))
+
+    def boom(*a, **k):
+        raise subprocess.TimeoutExpired("lake", 1)
+    monkeypatch.setattr(lean_check.subprocess, "run", boom)
+    with pytest.raises(lean_check.LeanError):
+        lean_check.check(str(tmp_path / "x.lean"), timeout=1)
+
+
+def test_cli_mint_lean_error_exits_3(tmp_path, monkeypatch):
+    from typer.testing import CliRunner
+    from buyatheorem import cli
+    monkeypatch.setenv("BAT_REGISTRY", str(tmp_path / "reg"))
+    monkeypatch.setenv("BAT_KEYDIR", str(tmp_path / "k"))
+    monkeypatch.setenv("BAT_LEANPROJ", str(tmp_path))
+    monkeypatch.setattr(novelty, "in_mathlib", lambda *x, **k: False)
+    calls = []
+
+    def killed(*a, **k):
+        calls.append(1)
+        raise lean_check.LeanError("lean process killed (rc 137)")
+    monkeypatch.setattr(lean_check, "check", killed)
+    r = CliRunner().invoke(cli.app, ["mint", "--for", "Ada Example", "--seed", "0abc"])
+    assert r.exit_code == 3 and "LEAN-ERROR: lean process killed (rc 137)" in r.output
+    assert len(calls) == 1 and os.listdir(tmp_path / "reg") == []

@@ -3,6 +3,7 @@ import sys
 
 import typer
 
+from buyatheorem import lean_check
 from buyatheorem import mint as m
 from buyatheorem import stock as st
 
@@ -22,7 +23,11 @@ app = typer.Typer(add_completion=False)
 
 @app.command()
 def mint(for_: str = typer.Option(..., "--for"), seed: str = typer.Option(..., "--seed")):
-    cert = m.mint(for_, seed)
+    try:
+        cert = m.mint(for_, seed)
+    except lean_check.LeanError as e:
+        print(f"LEAN-ERROR: {e}")
+        sys.exit(3)
     print(cert["serial"])
 
 

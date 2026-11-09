@@ -137,7 +137,11 @@ def verify(serial: str, log=print) -> int:
     if rc not in (0, 5):
         log(f"FAIL: attestation rc {rc}")
         return 1
-    ok, _ = lean_check.check(lp)
+    try:
+        ok, _ = lean_check.check(lp)
+    except lean_check.LeanError as e:
+        log(f"FAIL: LEAN-ERROR: {e}")
+        return 1
     if not ok:
         log("FAIL: Lean check failed")
         return 1
