@@ -5,7 +5,7 @@
 <h1 align="center">Buy a Theorem: a small lemma with your name</h1>
 
 <p align="center">
-  <b>A new, small, machine-checked lemma, named after you.</b><br>
+  <b>A new (not in Mathlib text), small, machine-checked lemma, named after you.</b><br>
   Lean 4 + Mathlib decide it is true; a signed registry entry lets anyone re-check it offline.
 </p>
 
@@ -53,9 +53,14 @@ Check any entry yourself with the standalone verifier: `python tools/attest_veri
 - **The registry is ours.** The attestation proves we signed the entry, not that anyone else recognises the name.
 - **Precedent:** TheoryMine (Edinburgh, 2010 onward) sold naming rights to machine-proved theorems with a certificate. What differs here: Lean 4 + Mathlib checking, an open registry, signed attestations and CC0 lemma texts. See [`docs/PRIOR_ART.md`](docs/PRIOR_ART.md).
 
+## Fulfilment
+
+Until a webhook endpoint exists, the operator runs `python tools/fulfil.py --poll` (needs `STRIPE_TEST_KEY` in the environment, test mode only) to claim reserved stock for completed test payments.
+
 ## Limits
 
 - `verify` needs a local Lean 4 project with Mathlib built (`BAT_LEANPROJ`). Checking the signature alone needs only `tools/attest_verify.py`.
+- Registry signing key (compare against the page and release notes before trusting it): `public_key_hex=a19ce6a30882ec88048ecc8300ebe223a342cd07401d3b1bf6f90248d3e00c1a`, `keyid=19dd0c0959a77c864317b230fdb53aacd32d958b6e84a64e4e0488c60f77797e`.
 - The buyer's or recipient's name becomes **public** in the registry, the Lean file and the certificate.
 
 ## FAQ

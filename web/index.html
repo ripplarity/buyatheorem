@@ -19,7 +19,7 @@ h2{font-size:1.6rem;margin:2.8rem 0 .8rem}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.2rem 1.4rem;margin:1rem 0}
 .prices{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1rem}
 .price{font-family:Fraunces,Georgia,serif;font-size:2rem}
-pre,code{background:var(--code);border-radius:6px;font-family:ui-monospace,Consolas,monospace;font-size:.85rem}
+pre,code{white-space:pre-wrap;word-break:break-all;background:var(--code);border-radius:6px;font-family:ui-monospace,Consolas,monospace;font-size:.85rem}
 pre{padding:.8rem 1rem;overflow-x:auto}
 .note{border-left:4px solid var(--accent);padding-left:1rem;color:var(--muted)}
 .btn{display:inline-block;background:var(--accent);color:#14213d;font-weight:600;padding:.6rem 1.1rem;border-radius:999px;text-decoration:none}
@@ -29,7 +29,7 @@ footer{margin-top:3rem;color:var(--muted);font-size:.9rem}
 <body>
 <main>
 <h1>Buy a Theorem</h1>
-<p class="sub">A new, small, checked lemma with your name on it.</p>
+<p class="sub">A new (not in Mathlib text), small, checked lemma with your name on it.</p>
 
 <h2>What you get</h2>
 <div class="card">
@@ -52,6 +52,7 @@ footer{margin-top:3rem;color:var(--muted);font-size:.9rem}
 <div class="card"><div class="price">$29</div><p><b>Single lemma.</b> Certificate PDF, Lean file, signed registry entry.</p></div>
 <div class="card"><div class="price">$79</div><p><b>Printed proof pack.</b> Not on sale yet.</p></div>
 </div>
+<p><a class="btn" href="https://buy.stripe.com/test_aFadR8dm7dSW0Fn7v45Rm00">Buy a lemma ($29)</a> <span class="note">TEST MODE: no real charge</span></p>
 <p class="note">Checkout is in Stripe test mode while we launch. No real charges yet.</p>
 <div class="card note" id="terms">
 <p><b>Refunds.</b> Refund any time before you claim your serial. After claim, the serial is retired with a registry note and the fee is not refundable.</p>
@@ -68,7 +69,7 @@ footer{margin-top:3rem;color:var(--muted);font-size:.9rem}
 <div class="card">
 <p>You do not need to trust us. Each registry entry has a Lean file and a signed attestation (DSSE, in-toto). To check one yourself:</p>
 <pre>python tools/attest_verify.py bat-XXXXXXXXXXXX.dsse.json --key &lt;pubkey&gt; --expect-keyid &lt;pinned keyid&gt; --check-subjects .</pre>
-<p>The example registry public key and keyid are in <a href="examples/registry-key.txt">examples/registry-key.txt</a>. That checks the signature and that the Lean file matches the signed hash. Then re-run Lean on the file yourself:</p>
+<p>The example registry public key and keyid are in <a href="examples/registry-key.txt">examples/registry-key.txt</a>. Compare this key against a second channel (the repository README or release notes) before trusting it. That checks the signature and that the Lean file matches the signed hash. Then re-run Lean on the file yourself:</p>
 <pre>lake env lean bat-XXXXXXXXXXXX.lean</pre>
 <p>Full verify (needs a local Lean 4 + Mathlib project; see README): <code>python -m buyatheorem verify bat-XXXXXXXXXXXX</code>. The attestation's predicate type is not yet in the verifier's list, so a valid signature currently returns exit code 5 ("signature valid, predicate type unknown"), not 0.</p>
 </div>

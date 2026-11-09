@@ -22,6 +22,9 @@ Buy a Theorem: a small, new, Lean-checked lemma with your name on it, plus a sig
 - Prior-art optics: TheoryMine did this first; state it plainly (done on page and README).
 - Key loss or leak: attestations cannot be re-signed under a new key without a public note.
 
+## Fulfilment
+- Run by the operator with `python tools/fulfil.py --poll [--link plink_...]` (env `STRIPE_TEST_KEY`) until a webhook endpoint exists. Idempotent on session id; log in `stock/fulfilled.jsonl`.
+
 ## Terms shown on the page before checkout
 - Refund any time before you claim your serial. After claim, the serial is retired with a registry note and the fee is not refundable.
 - The buyer's or recipient's name becomes PUBLIC in the registry, the Lean file and the PDF. Gifting requires the recipient's consent.

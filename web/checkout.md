@@ -1,16 +1,24 @@
 # Checkout (Stripe TEST mode only)
 
-No live key anywhere in this repo. The test key is read from the environment variable `STRIPE_TEST_KEY` and is never committed.
+No live key anywhere in this repo. The test key is read from the environment variable `STRIPE_TEST_KEY` and is never committed. Object ids below are not secrets.
+
+## Test objects (livemode=false)
+- Product: `prod_VatW5FsUdP1uSX`
+- Price: `price_1UZhjhAEYFnTYpgASNYATWfZ` ($29)
+- Payment link: https://buy.stripe.com/test_aFadR8dm7dSW0Fn7v45Rm00
+- Custom text field key `buyer_name`, label "Name for the certificate (becomes public)".
 
 ## Flow
-1. Create a Payment Link in the Stripe dashboard in TEST mode: product "A new, checked lemma" at $29 (and "Printed proof pack" at $79, text only for now).
-2. Add a custom field "Name for the certificate" and map it to session metadata key `buyer_name` (Payment Links: `metadata[buyer_name]` via a custom text field, or create the Checkout Session server-side with `metadata={"buyer_name": ...}`).
-3. Point a webhook endpoint at your server for `checkout.session.completed`. The handler MUST verify the `Stripe-Signature` header (webhook signing secret from env, never committed) before anything else.
-4. The handler passes the verified event to `tools/fulfil.py` (`fulfil(event, "stock")`): it refuses live-mode events, unpaid sessions, missing names and repeated session ids, then runs `claim` on the next reserved serial. No Lean run happens at purchase time; the lemma was checked when it entered stock.
-5. Email or show the buyer `stock/<serial>.pdf` and the command `python -m buyatheorem verify <serial> --dir stock`.
+1. The buyer pays through the payment link and fills in the name field.
+2. Until a webhook endpoint exists, the operator runs fulfilment by hand:
 
-## Local test (no network)
+        STRIPE_TEST_KEY=... python tools/fulfil.py --poll [--link plink_...] [--dir stock]
+
+   It lists completed Checkout Sessions via the Stripe API, reads `custom_fields` `buyer_name`, runs `claim` on the next RESERVED stock serial, and appends `session -> serial` to `stock/fulfilled.jsonl`. It is idempotent on session id, refuses live-mode sessions and live keys, and needs no Lean run (stock lemmas were checked when minted).
+3. A later webhook endpoint must verify the `Stripe-Signature` header before calling `tools/fulfil.py` `fulfil()` (events carry the name in `metadata.buyer_name`).
+4. Send the buyer `stock/<serial>.pdf` and `python -m buyatheorem verify <serial> --dir stock`.
+
+## Local tests (no network)
     python tools/fulfil.py tests/fixtures/checkout_completed.json --dir stock
 
 Exit codes: 0 fulfilled, 2 bad event, 3 already fulfilled, 4 stock empty.
-Test key use: `export STRIPE_TEST_KEY=...` in your shell only, for the Stripe CLI (`stripe listen --api-key "$STRIPE_TEST_KEY"`).
