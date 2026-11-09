@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="530" height="22" viewBox="0 0 530 22" role="img" aria-label="Lean 4 + Mathlib checked, signed registry, lemmas CC0, code Apache-2.0">
+  <style>text{font:600 11px -apple-system,Segoe UI,Helvetica,Arial,sans-serif;fill:#fff}</style>
+  <rect x="0" y="0" width="184" height="22" rx="4" fill="#2A1B6E"/><text x="92" y="15" text-anchor="middle">Lean 4 + Mathlib checked</text>
+  <rect x="190" y="0" width="121" height="22" rx="4" fill="#5A1B4E"/><text x="250" y="15" text-anchor="middle">signed registry</text>
+  <rect x="317" y="0" width="86" height="22" rx="4" fill="#2E7D5B"/><text x="360" y="15" text-anchor="middle">lemmas CC0</text>
+  <rect x="409" y="0" width="121" height="22" rx="4" fill="#2E7D5B"/><text x="470" y="15" text-anchor="middle">code Apache-2.0</text>
+</svg>
