@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buy a Theorem: a new, checked lemma with your name on it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600&family=Fraunces:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbfaf7;--fg:#14213d;--muted:#55607a;--card:#fff;--line:#d9d6cc;--accent:#d4a843;--code:#f1efe8}
+@media (prefers-color-scheme:dark){:root{--bg:#0f172a;--fg:#eef1f7;--muted:#a3adc2;--card:#162033;--line:#2b3955;--accent:#d4a843;--code:#0b1220}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:17px/1.6 "DM Sans",system-ui,sans-serif}
+main{max-width:46rem;margin:0 auto;padding:3rem 1.25rem 5rem}
+h1,h2{font-family:Fraunces,Georgia,serif;line-height:1.15}
+h1{font-size:2.6rem;margin:0 0 .5rem}
+h2{font-size:1.6rem;margin:2.8rem 0 .8rem}
+.sub{font-family:Fraunces,Georgia,serif;font-style:italic;color:var(--muted);max-width:30rem;margin:0 0 2rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.2rem 1.4rem;margin:1rem 0}
+.prices{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1rem}
+.price{font-family:Fraunces,Georgia,serif;font-size:2rem}
+pre,code{background:var(--code);border-radius:6px;font-family:ui-monospace,Consolas,monospace;font-size:.85rem}
+pre{padding:.8rem 1rem;overflow-x:auto}
+.note{border-left:4px solid var(--accent);padding-left:1rem;color:var(--muted)}
+.btn{display:inline-block;background:var(--accent);color:#14213d;font-weight:600;padding:.6rem 1.1rem;border-radius:999px;text-decoration:none}
+footer{margin-top:3rem;color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Buy a Theorem</h1>
+<p class="sub">A new, checked lemma with your name on it. Small by design.</p>
+
+<h2>What you get</h2>
+<div class="card">
+<ul>
+<li>A fresh Lean 4 lemma, checked against Mathlib, with your name in the file.</li>
+<li>A one-page PDF certificate: statement, serial, Lean and Mathlib versions, proof hash, verify command.</li>
+<li>A signed registry entry anyone can re-verify, offline, with a standalone script.</li>
+<li>The lemma text is CC0.</li>
+</ul>
+</div>
+
+<h2>Three example certificates</h2>
+<div class="card"><b>Ada Example</b> &middot; <code>bat-edb5d009f2b1</code><pre>theorem bat_edb5d009f2b1 : (3531 * 7150) % 860 = 490</pre><p class="note">Family F1. Lean-checked; small by design.</p></div>
+<div class="card"><b>Ada Example</b> &middot; <code>bat-38d3eadd9ccc</code><pre>theorem bat_38d3eadd9ccc : ∑ i ∈ Finset.range 25, (2 * i + 1) = 25 ^ 2</pre><p class="note">Family F2. Lean-checked; small by design.</p></div>
+<div class="card"><b>Ada Example</b> &middot; <code>bat-1e5dfc2e007e</code><pre>theorem bat_1e5dfc2e007e : 291 ^ 2 + 326 ^ 2 ≥ 2 * 291 * 326</pre><p class="note">Family F3. Lean-checked; small by design.</p></div>
+
+
+<h2>Price</h2>
+<div class="prices">
+<div class="card"><div class="price">$29</div><p><b>Single lemma.</b> Certificate PDF, Lean file, signed registry entry.</p></div>
+<div class="card"><div class="price">$79</div><p><b>Printed proof pack.</b> Text only for now; print fulfilment is not set up yet.</p></div>
+</div>
+<p class="note">Checkout is in Stripe test mode while we launch. No real charges yet.</p>
+
+<h2>Honesty</h2>
+<div class="card note">
+<p>"New" means the statement text is not found verbatim in Mathlib and has not been minted before. That is all. The lemmas are small: arithmetic, finite sums, small inequalities, binomial coefficients. The value is a machine-checked proof and your name on it. We claim no mathematical importance, and Lean, not a language model, decides validity.</p>
+<p>Precedent: TheoryMine (Edinburgh, 2010) sold naming rights to machine-proved theorems. What differs here: Lean 4 + Mathlib checking, an open registry, signed attestations, CC0 lemma texts.</p>
+</div>
+
+<h2>Verify any certificate</h2>
+<div class="card">
+<p>You do not need to trust us. Each registry entry has a Lean file and a signed attestation (DSSE, in-toto). To check one yourself:</p>
+<pre>python tools/attest_verify.py bat-XXXXXXXXXXXX.dsse.json --key &lt;registry public key hex&gt; --expect-keyid &lt;pinned keyid&gt; --check-subjects .</pre>
+<p>That checks the signature and that the Lean file matches the signed hash. Then re-run Lean on the file yourself:</p>
+<pre>lake env lean bat-XXXXXXXXXXXX.lean</pre>
+<p>Or, with the repository: <code>python -m buyatheorem verify bat-XXXXXXXXXXXX</code>. The attestation's predicate type is not yet in the verifier's list, so a valid signature currently returns exit code 5 ("signature valid, predicate type unknown"), not 0.</p>
+</div>
+<footer>Code Apache-2.0, lemma texts CC0. No tracking scripts. Web fonts come from Google Fonts.</footer>
+</main>
+</body>
+</html>
