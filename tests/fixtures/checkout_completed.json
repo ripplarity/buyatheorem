@@ -1,0 +1,8 @@
+{
+  "id": "evt_test_0001",
+  "type": "checkout.session.completed",
+  "livemode": false,
+  "data": {"object": {"id": "cs_test_0001", "object": "checkout.session", "payment_status": "paid",
+                      "amount_total": 2900, "currency": "usd", "livemode": false,
+                      "metadata": {"buyer_name": "Ada Example"}}}
+}
