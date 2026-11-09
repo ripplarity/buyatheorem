@@ -78,3 +78,17 @@ def test_clean_buyer():
     assert "\n" not in clean_buyer("A\nB -/ x")
     with pytest.raises(ValueError):
         clean_buyer("!!!")
+
+
+def test_pdf_certificate(tmp_path):
+    import pypdf
+    from buyatheorem import pdfcert
+    c = {"serial": "bat-abc123", "buyer": "Asha R.", "lean_source": "theorem x : ∑ i ∈ Finset.range 3, i = 3 := by\n  decide\n",
+         "lean_version": "Lean (version 4.35.0)", "mathlib_rev": "56a0", "lean_sha256": "a" * 64,
+         "check_log_sha256": "b" * 64}
+    p = tmp_path / "c.pdf"
+    pdfcert.render_pdf(c, str(p))
+    assert p.stat().st_size > 10_000
+    txt = pypdf.PdfReader(str(p)).pages[0].extract_text()
+    assert "bat-abc123" in txt and "Asha R." in txt and "TheoryMine (2010)" in txt
+    assert "small by design" in txt and "verify bat-abc123" in txt

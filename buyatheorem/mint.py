@@ -2,7 +2,7 @@ import json
 import os
 import re
 
-from buyatheorem import certificate, families, lean_check, novelty, registry
+from buyatheorem import certificate, families, lean_check, novelty, pdfcert, registry
 
 
 def clean_buyer(b: str) -> str:
@@ -73,6 +73,7 @@ def mint(buyer: str, seed: str, log=print, skip_mathlib_grep: bool = False) -> d
                         newline="\n",
                     ) as f:
                         f.write(certificate.render_html(cert))
+                    pdfcert.render_pdf(cert, os.path.join(reg, serial + ".pdf"))
                     registry.attest(
                         lean_path,
                         cert,
