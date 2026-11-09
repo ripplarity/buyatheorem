@@ -9,7 +9,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 _FOLD = {"∑": "sum", "≥": ">=", "≤": "<=", "∈": "in", "≠": "!=", "ℕ": "Nat", "ℤ": "Int"}
-HONESTY = "A new, checked lemma with your name on it; small by design."
+HONESTY = "A new, small, checked lemma with your name on it"
 PRECEDENT = "Precedent: TheoryMine (2010)."
 
 
@@ -78,7 +78,8 @@ def render_pdf(cert: dict, out_path: str) -> None:
     rows = [("Lean", cert["lean_version"]), ("Mathlib commit", cert["mathlib_rev"]),
             ("Proof (Lean file) sha256", cert["lean_sha256"]),
             ("Check log sha256", cert["check_log_sha256"] + (" (empty log: Lean printed no messages)" if cert["check_log_sha256"] == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" else "")),
-            ("Verify", f"python -m buyatheorem verify {cert['serial']}")]
+            ("Verify (signature only)", f"python tools/attest_verify.py {cert['serial']}.dsse.json --key <pubkey> --expect-keyid <keyid>"),
+            ("Verify (full)", f"python -m buyatheorem verify {cert['serial']} (needs a local Lean 4 + Mathlib project; see README)")]
     for k, v in rows:
         c.setFont("Vera-B", 9)
         c.drawString(60, y, k)

@@ -92,7 +92,9 @@ def test_pdf_certificate(tmp_path):
     assert p.stat().st_size > 10_000
     txt = pypdf.PdfReader(str(p)).pages[0].extract_text()
     assert "bat-abc123" in txt and "Ada Example" in txt and "TheoryMine (2010)" in txt
-    assert "small by design" in txt and "verify bat-abc123" in txt
+    flat = txt.replace(chr(10), " ")
+    assert "A new, small, checked lemma with your name on it" in flat and "attest_verify.py bat-abc123.dsse.json" in flat
+    assert flat.index("attest_verify.py") < flat.index("buyatheorem verify bat-abc123") and "see README" in flat
 
 
 def _fake_stock(d, serial="bat-aaaaaaaaaaaa"):
@@ -204,3 +206,23 @@ def test_empty_log_label_in_html_and_pdf(tmp_path):
     pdfcert.render_pdf(c, str(tmp_path / "e.pdf"))
     txt = pypdf.PdfReader(str(tmp_path / "e.pdf")).pages[0].extract_text().replace(chr(10), " ")
     assert "empty log" in txt and "PUBLIC" in txt
+
+
+def test_reset_restores_reserved_and_ship_check(tmp_path, monkeypatch):
+    import pypdf
+    from buyatheorem import stock as st
+    monkeypatch.setenv("BAT_KEYDIR", str(tmp_path / "k"))
+    d = str(tmp_path)
+    s = _fake_stock(d)
+    assert st.ship_check(d) == 1
+    orig = open(os.path.join(d, s + ".lean"), encoding="utf-8").read()
+    st.claim(s, "Ada Example", d)
+    with pytest.raises(st.ClaimedInStock):
+        st.ship_check(d)
+    st.reset(s, d)
+    assert open(os.path.join(d, s + ".lean"), encoding="utf-8").read() == orig
+    assert st.read_index(d)[0]["state"] == "reserved" and st.ship_check(d) == 1
+    txt = pypdf.PdfReader(os.path.join(d, s + ".pdf")).pages[0].extract_text()
+    assert "Ada Example" not in txt and "RESERVED" in txt
+    assert registry.verify_attestation(os.path.join(d, s + ".dsse.json"), d) == 5
+    st.claim(s, "Next Buyer", d)

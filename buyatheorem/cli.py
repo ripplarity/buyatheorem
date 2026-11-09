@@ -34,14 +34,27 @@ def verify(serial: str, dir: str = typer.Option(None, "--dir")):
 
 
 @app.command()
-def stock(n: int = typer.Option(50, "--n"), out: str = typer.Option("stock", "--out")):
+def stock(n: int = typer.Option(50, "--n"), out: str = typer.Option("stock", "--out"),
+          ship: bool = typer.Option(False, "--ship", help="refuse (rc 1) if any row is claimed")):
     rows = st.stock(n, out)
+    if ship:
+        try:
+            st.ship_check(out)
+        except st.ClaimedInStock as e:
+            print(e, file=sys.stderr)
+            sys.exit(1)
     print(len(rows))
 
 
 @app.command()
 def claim(serial: str, for_: str = typer.Option(..., "--for"), dir: str = typer.Option("stock", "--dir")):
     st.claim(serial, for_, dir)
+    print(serial)
+
+
+@app.command("reset")
+def reset_(serial: str, dir: str = typer.Option("stock", "--dir")):
+    st.reset(serial, dir)
     print(serial)
 
 

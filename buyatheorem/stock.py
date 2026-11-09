@@ -90,3 +90,52 @@ def next_reserved(d: str) -> str:
         if r["state"] == "reserved":
             return r["serial"]
     raise LookupError("stock empty")
+
+
+class ClaimedInStock(Exception):
+    pass
+
+
+def ship_check(d: str) -> int:
+    """Refuse to ship a stock dir that contains any claimed row. Returns row count."""
+    rows = read_index(d)
+    bad = [r["serial"] for r in rows if r["state"] != "reserved" or r.get("buyer") != RESERVED]
+    if bad:
+        raise ClaimedInStock("claimed rows present: " + ", ".join(bad))
+    return len(rows)
+
+
+def reset(serial: str, d: str) -> None:
+    """Undo a claim: restore RESERVED, drop the claimed PDF and rebuild reserved artefacts."""
+    rows = read_index(d)
+    row = next((r for r in rows if r["serial"] == serial), None)
+    if row is None:
+        raise KeyError("unknown serial")
+    if row["state"] == "reserved":
+        return
+    os.environ["BAT_REGISTRY"] = d
+    lp, jp = os.path.join(d, serial + ".lean"), os.path.join(d, serial + ".json")
+    cert = json.load(open(jp, encoding="utf-8"))
+    src = open(lp, encoding="utf-8").read()
+    src = src.replace(f"-- Buyer: {cert['buyer']}\n", f"-- Buyer: {RESERVED}\n", 1)
+    with open(lp, "w", encoding="utf-8", newline="\n") as f:
+        f.write(src)
+    if registry.sha256_file(lp) != cert["checked_sha256"]:
+        raise ValueError("restored file does not match the originally checked hash")
+    cert.update({"buyer": RESERVED, "lean_source": src, "lean_sha256": cert.pop("checked_sha256")})
+    cert.pop("claimed_at", None)
+    with open(jp, "w", encoding="utf-8", newline="\n") as f:
+        f.write(certificate.dumps(cert))
+    with open(os.path.join(d, serial + ".html"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(certificate.render_html(cert))
+    pp = os.path.join(d, serial + ".pdf")
+    if os.path.exists(pp):
+        os.remove(pp)
+    pdfcert.render_pdf(cert, pp)
+    registry.attest(lp, cert, os.path.join(d, serial + ".dsse.json"), registry.utc())
+    row.update({"state": "reserved", "buyer": RESERVED})
+    _write_index(d, rows)
+    with open(os.path.join(d, "registry.jsonl"), "a", encoding="utf-8", newline="\n") as f:
+        f.write(json.dumps({"event": "reset", "serial": serial, "stmt_hash": cert["statement_hash"],
+                            "lean_sha256": cert["lean_sha256"], "buyer": RESERVED, "minted_at": registry.utc()},
+                           sort_keys=True) + "\n")

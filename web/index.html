@@ -67,10 +67,10 @@ footer{margin-top:3rem;color:var(--muted);font-size:.9rem}
 <h2>Verify any certificate</h2>
 <div class="card">
 <p>You do not need to trust us. Each registry entry has a Lean file and a signed attestation (DSSE, in-toto). To check one yourself:</p>
-<pre>python tools/attest_verify.py bat-XXXXXXXXXXXX.dsse.json --key &lt;registry public key hex&gt; --expect-keyid &lt;pinned keyid&gt; --check-subjects .</pre>
+<pre>python tools/attest_verify.py bat-XXXXXXXXXXXX.dsse.json --key &lt;pubkey&gt; --expect-keyid &lt;pinned keyid&gt; --check-subjects .</pre>
 <p>That checks the signature and that the Lean file matches the signed hash. Then re-run Lean on the file yourself:</p>
 <pre>lake env lean bat-XXXXXXXXXXXX.lean</pre>
-<p>Or, with the repository: <code>python -m buyatheorem verify bat-XXXXXXXXXXXX</code>. The attestation's predicate type is not yet in the verifier's list, so a valid signature currently returns exit code 5 ("signature valid, predicate type unknown"), not 0.</p>
+<p>Full verify (needs a local Lean 4 + Mathlib project; see README): <code>python -m buyatheorem verify bat-XXXXXXXXXXXX</code>. The attestation's predicate type is not yet in the verifier's list, so a valid signature currently returns exit code 5 ("signature valid, predicate type unknown"), not 0.</p>
 </div>
 <footer>Code Apache-2.0, lemma texts CC0. No tracking scripts. Web fonts come from Google Fonts.</footer>
 </main>
