@@ -3,6 +3,8 @@
 import os
 
 import reportlab
+
+from buyatheorem import certificate
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -74,8 +76,16 @@ def render_pdf(cert: dict, out_path: str) -> None:
             for part in _wrap(c, ln, "Courier", 9, W - 120):
                 c.drawString(60, y, part)
                 y -= 12
+    y -= 6
+    c.setFont("Vera-B", 10)
+    c.drawString(60, y, "In plain English:")
     y -= 14
-    rows = [("Lean", cert["lean_version"]), ("Mathlib commit", cert["mathlib_rev"]),
+    c.setFont("Vera", 10)
+    for part in _wrap(c, fold(certificate.plain_english(cert)), "Vera", 10, W - 120):
+        c.drawString(60, y, part)
+        y -= 13
+    y -= 12
+    rows = [("Pin", certificate.pin_text(cert)), ("Mathlib commit (full hash)", cert["mathlib_rev"]),
             ("Proof (Lean file) sha256", cert["lean_sha256"]),
             ("Check log sha256", cert["check_log_sha256"] + (" (empty log: Lean printed no messages)" if cert["check_log_sha256"] == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" else "")),
             ("Verify (signature only)", f"python tools/attest_verify.py {cert['serial']}.dsse.json --key <pubkey> --expect-keyid <keyid>"),

@@ -293,3 +293,43 @@ def test_page_links_relative_and_examples_present():
             assert "Ada" not in open(os.path.join(web, "examples", f), encoding="utf-8").read()
     wf = open(os.path.join(web, "..", ".github", "workflows", "pages.yml"), encoding="utf-8").read()
     assert "upload-pages-artifact@v3" in wf and "path: web" in wf and "pages: write" in wf
+
+
+@pytest.mark.parametrize("fam,stmt,expect", [
+    ("F1", "(3531 * 7150) % 860 = 490", "Multiplying 3531 by 7150 and dividing the product by 860 leaves remainder 490."),
+    ("F2", "∑ i ∈ Finset.range 25, (2 * i + 1) = 25 ^ 2", "Adding the first 25 odd numbers gives 625, which is 25 squared."),
+    ("F2", "∑ i ∈ Finset.range 7, i ^ 3 = 441", "Adding i to the power 3 for every whole number i from 0 to 6 gives 441."),
+    ("F3", "291 ^ 2 + 326 ^ 2 ≥ 2 * 291 * 326", "The sum of the squares of 291 and 326 is at least twice their product."),
+    ("F4", "Nat.choose 8 6 = 28", "There are exactly 28 ways to choose 6 items from 8."),
+    ("F5", "(6360 ^ 2 + 3908 ^ 2) % 351 = 112", "Adding the squares of 6360 and 3908 and dividing by 351 leaves remainder 112."),
+])
+def test_describe_per_family(fam, stmt, expect):
+    assert families.describe(fam, stmt) == expect
+
+
+@pytest.mark.parametrize("fam,stmt", [("F1", "nonsense"), ("F9", "1 = 1"), ("F2", "∑ i ∈ Finset.range 3, (2 * i + 1) = 4 ^ 2"), ("F4", "")])
+def test_describe_fallback(fam, stmt):
+    assert families.describe(fam, stmt) == "A small arithmetic fact, checked by Lean 4 + Mathlib."
+
+
+def test_describe_covers_every_generated_statement():
+    for fam in families.ORDER:
+        for seed in ("00ff", "a1b2", "deadbeef", "0abc"):
+            c = families.candidate(fam, seed, "Ada Example")
+            assert families.describe(fam, c.statement) != "A small arithmetic fact, checked by Lean 4 + Mathlib.", c.statement
+
+
+def test_certificate_html_plain_english_and_pin(tmp_path):
+    rev = "56a005855ea17e0b0958f73ec801ae140b0a1679"
+    c = {"serial": "bat-p", "buyer": "Ada Example", "family": "F4", "statement": "Nat.choose 8 6 = 28", "lean_source": "x",
+         "lean_version": "Lean (version 4.35.0, x86_64-w64-windows-gnu, Release)", "mathlib_rev": rev,
+         "lean_sha256": "a" * 64, "check_log_sha256": "b" * 64}
+    h = certificate.render_html(c)
+    assert "In plain English:" in h and "There are exactly 28 ways to choose 6 items from 8." in h
+    assert "Lean 4.35.0, Mathlib commit 56a005855ea1 (full hash below)" in h
+    assert f"https://github.com/leanprover-community/mathlib4/commit/{rev}" in h
+    import pypdf
+    from buyatheorem import pdfcert
+    pdfcert.render_pdf(c, str(tmp_path / "p.pdf"))
+    txt = pypdf.PdfReader(str(tmp_path / "p.pdf")).pages[0].extract_text().replace(chr(10), " ")
+    assert "In plain English:" in txt and "ways to choose 6 items from 8" in txt and "56a005855ea1" in txt

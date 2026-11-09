@@ -74,3 +74,43 @@ def family_order(seed: str) -> list:
     """Rotate start family by seed so seeds spread over families; fall through on failure."""
     s = int(hashlib.sha256(seed.encode()).hexdigest(), 16) % len(ORDER)
     return ORDER[s:] + ORDER[:s]
+
+
+_FALLBACK = "A small arithmetic fact, checked by Lean 4 + Mathlib."
+_NUM = r"(\d+)"
+_PATTERNS = {
+    "F1": (r"^\(" + _NUM + r" \* " + _NUM + r"\) % " + _NUM + r" = " + _NUM + "$",
+           lambda a, b, n, c: f"Multiplying {a} by {b} and dividing the product by {n} leaves remainder {c}."),
+    "F5": (r"^\(" + _NUM + r" \^ 2 \+ " + _NUM + r" \^ 2\) % " + _NUM + r" = " + _NUM + "$",
+           lambda a, b, n, c: f"Adding the squares of {a} and {b} and dividing by {n} leaves remainder {c}."),
+    "F3": (r"^" + _NUM + r" \^ 2 \+ " + _NUM + r" \^ 2 (?:≥|>=) 2 \* " + _NUM + r" \* " + _NUM + "$",
+           lambda a, b, c, d: f"The sum of the squares of {a} and {b} is at least twice their product."),
+    "F4": (r"^Nat\.choose " + _NUM + " " + _NUM + " = " + _NUM + "$",
+           lambda n, k, v: f"There are exactly {v} ways to choose {k} items from {n}."),
+}
+_F2_ODD = r"^∑ i ∈ Finset\.range " + _NUM + r", \(2 \* i \+ 1\) = " + _NUM + r" \^ 2$"
+_F2_POW = r"^∑ i ∈ Finset\.range " + _NUM + r", i \^ " + _NUM + " = " + _NUM + "$"
+
+
+def describe(family: str, statement: str) -> str:
+    """Deterministic one-sentence English reading of a minted statement (no LLM). Uses only family + statement."""
+    import re
+    try:
+        s = " ".join(str(statement).split())
+        if family == "F2":
+            m = re.match(_F2_ODD, s)
+            if m and m.group(1) == m.group(2):
+                k = int(m.group(1))
+                return f"Adding the first {k} odd numbers gives {k * k}, which is {k} squared."
+            m = re.match(_F2_POW, s)
+            if m:
+                k, p, v = m.groups()
+                return f"Adding i to the power {p} for every whole number i from 0 to {int(k) - 1} gives {v}."
+        elif family in _PATTERNS:
+            pat, fn = _PATTERNS[family]
+            m = re.match(pat, s)
+            if m:
+                return fn(*m.groups())
+    except (ValueError, TypeError):
+        pass
+    return _FALLBACK
