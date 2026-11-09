@@ -19,13 +19,23 @@ def lean_source(serial_id: str, buyer: str, stmt: str, tactic: str) -> str:
     )
 
 
-def mint(buyer: str, seed: str, log=print, skip_mathlib_grep: bool = False) -> dict:
+def mint(
+    buyer: str,
+    seed: str,
+    log=print,
+    skip_mathlib_grep: bool = False,
+    first_family: str = None,
+    derive_name: str = None,
+) -> dict:
     buyer = clean_buyer(buyer)
     reg = registry.registry_dir()
     started = registry.utc()
-    for fam in families.family_order(seed):
+    order = families.family_order(seed)
+    if first_family:
+        order = [first_family] + [f for f in order if f != first_family]
+    for fam in order:
         for salt in range(3):
-            c = families.candidate(fam, seed, buyer, salt)
+            c = families.candidate(fam, seed, derive_name or buyer, salt)
             h = novelty.stmt_hash(c.statement)
             if novelty.previously_minted(c.statement, reg):
                 log(f"{fam}/{salt}: already minted, next")
