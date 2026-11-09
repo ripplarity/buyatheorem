@@ -2,15 +2,18 @@ import hashlib
 import os
 import subprocess
 
-LEANPROJ = os.environ.get(
-    "BAT_LEANPROJ", r"C:\Users\advat\Development\_research\leanproj"
-)
+
+def leanproj() -> str:
+    p = os.environ.get("BAT_LEANPROJ")
+    if not p:
+        raise RuntimeError("set BAT_LEANPROJ to a Lean 4 project with Mathlib built")
+    return p
 
 
 def lean_version() -> str:
     p = subprocess.run(
         ["lake", "env", "lean", "--version"],
-        cwd=LEANPROJ,
+        cwd=leanproj(),
         capture_output=True,
         text=True,
         timeout=300,
@@ -21,7 +24,7 @@ def lean_version() -> str:
 def mathlib_rev() -> str:
     import json
 
-    m = json.load(open(os.path.join(LEANPROJ, "lake-manifest.json"), encoding="utf-8"))
+    m = json.load(open(os.path.join(leanproj(), "lake-manifest.json"), encoding="utf-8"))
     for p in m["packages"]:
         if p["name"] == "mathlib":
             return p["rev"]
@@ -29,7 +32,7 @@ def mathlib_rev() -> str:
 
 
 def mathlib_src() -> str:
-    return os.path.join(LEANPROJ, ".lake", "packages", "mathlib", "Mathlib")
+    return os.path.join(leanproj(), ".lake", "packages", "mathlib", "Mathlib")
 
 
 def check(path: str, timeout: int = 600):
@@ -37,7 +40,7 @@ def check(path: str, timeout: int = 600):
     try:
         p = subprocess.run(
             ["lake", "env", "lean", os.path.abspath(path)],
-            cwd=LEANPROJ,
+            cwd=leanproj(),
             capture_output=True,
             text=True,
             encoding="utf-8",
